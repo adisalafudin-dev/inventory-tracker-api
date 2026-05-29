@@ -1,0 +1,222 @@
+### ============================================================
+### NestJS Production API — REST Client Test File
+### Compatible with: VS Code REST Client extension
+###                   JetBrains HTTP Client (IntelliJ/WebStorm)
+### ============================================================
+### Install VS Code extension: humao.rest-client
+### ============================================================
+
+@baseUrl = http://localhost:3000/api/v1
+@contentType = application/json
+
+### ─────────────────────────────────────────────
+### VARIABLES (update after login)
+### ─────────────────────────────────────────────
+### Paste your access_token here after login:
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXBxZGRwNGkwMDAwOGt1bHF2ZmxvcTZsIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMDI1OTIyLCJleHAiOjE3ODA2MzA3MjJ9.stTvejGKgFJtbTP2G_HWr5tXukg8ZsKftsI3j9eRGOc
+
+
+### ============================================================
+###  AUTH — /auth
+### ============================================================
+
+### [1] Register a new user
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "StrongPassword123!"
+}
+
+###
+
+### [2] Register — validation error (weak password)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Bad User",
+  "email": "bad@example.com",
+  "password": "123"
+}
+
+###
+
+### [3] Register — validation error (invalid email)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Bad User",
+  "email": "not-an-email",
+  "password": "StrongPassword123!"
+}
+
+###
+
+### [4] Register — conflict (duplicate email)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "John Doe Again",
+  "email": "john@example.com",
+  "password": "StrongPassword123!"
+}
+
+###
+
+### [5] Login — valid credentials
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john@example.com",
+  "password": "StrongPassword123!"
+}
+
+###
+
+### [6] Login — wrong password
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john@example.com",
+  "password": "WrongPassword!"
+}
+
+###
+
+### [7] Login — user not found
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "ghost@example.com",
+  "password": "StrongPassword123!"
+}
+
+###
+
+### [8] Login — missing fields (validation error)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john@example.com"
+}
+
+
+### ============================================================
+###  USERS — /users  (Protected Routes)
+### ============================================================
+
+### [9] Get current user profile — valid token
+GET {{baseUrl}}/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXBxZGRwNGkwMDAwOGt1bHF2ZmxvcTZsIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMDI2MTQ1LCJleHAiOjE3ODA2MzA5NDV9.KJSnksQFzMQT21Z-iB-oDFb-ZhdsGUjP_R2f4_DrUDo
+
+###
+
+### [10] Get current user email only — valid token
+GET {{baseUrl}}/users/me/email
+Authorization: Bearer {{accessToken}}
+
+###
+
+### [11] Get current user — no token (should return 401)
+GET {{baseUrl}}/users/me
+
+###
+
+### [12] Get current user — invalid/malformed token (should return 401)
+GET {{baseUrl}}/users/me
+Authorization: Bearer this.is.not.a.valid.token
+
+###
+
+### [13] Get current user — expired token (should return 401)
+GET {{baseUrl}}/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZW1haWwiOiJleHBpcmVkQGV4YW1wbGUuY29tIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.4Adcj3UFYzPUVaVF43FmMze1B1e2JsLKwF5RTN1POHY
+
+
+### ============================================================
+###  EXTRA — Whitelist & Forbidden Fields Test
+### ============================================================
+
+### [14] Register with extra unknown fields (should be rejected or stripped)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Hacker",
+  "email": "hacker@example.com",
+  "password": "StrongPassword123!",
+  "isAdmin": true,
+  "role": "superadmin"
+}
+
+###
+
+### [15] Health check (if you have one)
+GET {{baseUrl}}/health
+
+
+### ============================================================
+### RESPONSE REFERENCE
+### ============================================================
+###
+### ✅ [1] Register — 201 Created
+### {
+###   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+### }
+###
+### ✅ [5] Login — 200 OK
+### {
+###   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+### }
+###
+### ✅ [9] Get Profile — 200 OK
+### {
+###   "id": "clxxxxx",
+###   "email": "john@example.com",
+###   "name": "John Doe",
+###   "createdAt": "2026-05-29T10:00:00.000Z",
+###   "updatedAt": "2026-05-29T10:00:00.000Z"
+### }
+###
+### ❌ Validation Error — 400 Bad Request
+### {
+###   "statusCode": 400,
+###   "timestamp": "2026-05-29T10:30:00.000Z",
+###   "path": "/api/v1/auth/register",
+###   "method": "POST",
+###   "message": ["password must be longer than or equal to 8 characters"],
+###   "error": "Bad Request"
+### }
+###
+### ❌ Unauthorized — 401
+### {
+###   "statusCode": 401,
+###   "timestamp": "2026-05-29T10:30:00.000Z",
+###   "path": "/api/v1/users/me",
+###   "method": "GET",
+###   "message": "Invalid credentials",
+###   "error": "Unauthorized"
+### }
+###
+### ❌ Conflict — 409
+### {
+###   "statusCode": 409,
+###   "timestamp": "2026-05-29T10:30:00.000Z",
+###   "path": "/api/v1/auth/register",
+###   "method": "POST",
+###   "message": "Email already in use",
+###   "error": "Conflict"
+### }
+###
+### ============================================================
