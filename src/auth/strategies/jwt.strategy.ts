@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export interface JwtPayload {
   sub: string; // Standard JWT claim: subject (user ID)
   email: string;
+  role: string;
 }
 
 @Injectable()
@@ -33,14 +34,20 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
+      select: {
+        // Pilih field yang ingin kita expose — passwordHash TIDAK dipilih
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException('User no longer exists');
     }
 
-    // Never expose the hashed password downstream
-    const { password: _password, ...result } = user;
-    return result;
+    return user;
   }
 }

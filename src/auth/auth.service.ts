@@ -9,6 +9,7 @@ import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { User } from 'generated/prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +21,10 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     // 1. Check for existing user
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+    const existingUser: User | null = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
     });
     if (existingUser) {
       throw new ConflictException('Email already in use');
@@ -35,9 +38,9 @@ export class AuthService {
     // 3. Persist the new user
     const user = await this.prisma.user.create({
       data: {
-        name: dto.name,
+        name: dto.name || '',
         email: dto.email,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
       },
     });
 
@@ -58,12 +61,13 @@ export class AuthService {
     }
 
     // 2. Verify the password against the stored argon2 hash
-    const passwordValid = await argon2.verify(user.password, dto.password);
+    const passwordValid = await argon2.verify(user.passwordHash, dto.password);
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.signToken(user.id, user.email);
+    const token = this.signToken(user.id, user.email);
+    return token;
   }
 
   private async signToken(

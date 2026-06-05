@@ -1,0 +1,62 @@
+### Buat user dulu untuk dapat token
+POST http://localhost:3000/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Ajah",
+  "email": "john@example.com",
+  "password": "StrongPassword123!"
+}
+
+### Login dulu untuk dapat token
+POST http://localhost:3000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "StrongPassword123!"
+}
+
+###
+
+### GET semua kategori
+GET http://localhost:3000/api/v1/categories
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMzA3ODc0LCJleHAiOjE3ODA5MTI2NzR9.i6ri7fM7LYDxtH4z6MxSJ4sQ-fOT17kePuHMX7aLlvI
+
+###
+
+### POST buat kategori baru
+POST http://localhost:3000/api/v1/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMzA3ODc0LCJleHAiOjE3ODA5MTI2NzR9.i6ri7fM7LYDxtH4z6MxSJ4sQ-fOT17kePuHMX7aLlvI
+
+{
+  "name": "Komputer"
+}
+
+###
+
+### POST duplikat — harusnya 409
+POST http://localhost:3000/api/v1/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMzA3ODc0LCJleHAiOjE3ODA5MTI2NzR9.i6ri7fM7LYDxtH4z6MxSJ4sQ-fOT17kePuHMX7aLlvI
+
+{
+  "name": "Laptop"
+}
+
+### POST buat kategori baru
+PATCH  http://localhost:3000/api/v1/categories/cmpv1d0t60002lsul9jrsmmk4
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMzA3ODc0LCJleHAiOjE3ODA5MTI2NzR9.i6ri7fM7LYDxtH4z6MxSJ4sQ-fOT17kePuHMX7aLlvI
+
+{
+  "name": "Celana"
+}
+
+
+### DELETE kategori 
+DELETE  http://localhost:3000/api/v1/categories/cmpv1d0t60002lsul9jrsmmk4
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwMzA3ODc0LCJleHAiOjE3ODA5MTI2NzR9.i6ri7fM7LYDxtH4z6MxSJ4sQ-fOT17kePuHMX7aLlvI
+

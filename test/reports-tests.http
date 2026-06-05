@@ -1,0 +1,32 @@
+### Dashboard bulan ini
+@baseUrl = http://localhost:3000/api/v1
+@contentType = application/json
+### [5] Login — valid credentials
+
+
+GET http://localhost:3000/api/v1/reports/dashboard
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+###
+
+### Produk low stock
+GET http://localhost:3000/api/v1/reports/low-stock
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+###
+
+### Generate laporan Mei 2026
+POST http://localhost:3000/api/v1/reports/monthly/generate?year=2026&month=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+###
+
+### List semua laporan bulanan
+GET http://localhost:3000/api/v1/reports/monthly
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+###
+
+### Refresh laporan (jalankan lagi endpoint yang sama)
+POST http://localhost:3000/api/v1/reports/monthly/generate?year=2026&month=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg

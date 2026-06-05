@@ -13,13 +13,158 @@ datasource db {
   provider = "postgresql"
 }
 
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("users")
 }
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+// ─── Catalog & Inventory ─────────────────────────────────────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+
+  @@map("categories")
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  sku         String      @unique
+  name        String
+  description String?
+  imageUrl    String?
+  costPrice   Decimal     @db.Decimal(12, 2)
+  sellPrice   Decimal     @db.Decimal(12, 2)
+  stock       Int         @default(0)
+  lowStockAt  Int         @default(5)  // alert threshold
+  isActive    Boolean     @default(true)
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  stockMovements StockMovement[]
+
+  @@map("products")
+}
+
+// ─── Platforms ───────────────────────────────────────────────────────────────
+
+model Platform {
+  id        String   @id @default(cuid())
+  name      String   @unique  // e.g. "Tokopedia", "Shopee", "Direct"
+  logoUrl   String?
+  isActive  Boolean  @default(true)
+  orders    Order[]
+  createdAt DateTime @default(now())
+
+  @@map("platforms")
+}
+
+// ─── Orders ──────────────────────────────────────────────────────────────────
+
+model Order {
+  id               String      @id @default(cuid())
+  orderNumber      String      @unique  // platform's own order ID
+  platformId       String
+  platform         Platform    @relation(fields: [platformId], references: [id])
+  status           OrderStatus @default(PENDING)
+  buyerName        String?
+  buyerNote        String?
+  shippingFee      Decimal     @default(0) @db.Decimal(12, 2)
+  discount         Decimal     @default(0) @db.Decimal(12, 2)
+  totalAmount      Decimal     @db.Decimal(12, 2)  // derived, stored for perf
+  orderedAt        DateTime    @default(now())
+  shippedAt        DateTime?
+  completedAt      DateTime?
+  items            OrderItem[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  shippingCourier String?      // Contoh: "J&T", "JNE", "SiCepat", "GoSend"
+  trackingNumber  String?      // Nomor Resi Pengiriman
+
+  @@index([platformId])
+  @@index([status])
+  @@index([orderedAt])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+  RETURNED
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(12, 2)  // sell price at time of order
+  unitCost   Decimal  @db.Decimal(12, 2)  // cost price at time of order
+  subtotal   Decimal  @db.Decimal(12, 2)
+
+  @@map("order_items")
+}
+
+// ─── Reporting (materialized snapshots) ──────────────────────────────────────
+
+model MonthlyReport {
+  id           String   @id @default(cuid())
+  year         Int
+  month        Int      // 1–12
+  totalRevenue Decimal  @db.Decimal(14, 2)
+  totalCogs    Decimal  @db.Decimal(14, 2)
+  totalProfit  Decimal  @db.Decimal(14, 2)
+  orderCount   Int
+  unitsSold    Int
+  generatedAt  DateTime @default(now())
+
+  @@unique([year, month])
+  @@map("monthly_reports")
+}
+
+enum MovementType {
+  IN          // Stok Masuk (Restock/Pembelian)
+  OUT         // Stok Keluar (Penjualan otomatis)
+  ADJUSTMENT  // Penyesuaian manual (misal: stok opname, barang rusak)
+  RETURN      // Stok kembali karena retur dari pembeli
+}
+
+
+model StockMovement {
+  id        String       @id @default(cuid())
+  productId String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int          // Nilai bisa positif (stok masuk) atau negatif (stok keluar)
+  type      MovementType
+  reason    String?      // Contoh: "Restock Bulanan", "Penjualan Order #XYZ", "Barang Pecah"
+  userId    String?      // Admin yang melakukan adjustment (jika manual)
+  createdAt DateTime     @default(now())
+
+  @@index([productId])
+  @@map("stock_movements")
+}
+

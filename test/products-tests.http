@@ -1,0 +1,124 @@
+@accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ'
+
+
+### Buat kategori dulu (kalau belum ada)
+POST http://localhost:3000/api/v1/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+{ "name": "Laptop" }
+
+###
+
+### Buat produk baru
+POST http://localhost:3000/api/v1/products
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ
+
+{
+  "sku": "asus-vivobook-16",
+  "name": "ASUS VivoBook 15",
+  "description": "Laptop untuk pelajar dan pekerja",
+  "costPrice": 6500000,
+  "sellPrice": 7800000,
+  "stock": 10,
+  "lowStockAt": 3,
+  "categoryId": "cmpv1cry40001lsul30y8p3zn"
+}
+
+###
+
+### GET semua produk
+GET http://localhost:3000/api/v1/products
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ
+
+###
+
+### GET satu produk
+GET http://localhost:3000/api/v1/products/cmpwnzjd70000bculzf7f0rxv
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ
+
+###
+
+### PATCH — update sebagian field saja
+PATCH http://localhost:3000/api/v1/products/cmpwnzjd70000bculzf7f0rxv
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ
+
+{
+  "sellPrice": 8200000,
+  "lowStockAt": 5
+}
+
+###
+
+### DELETE — soft delete (isActive = false)
+DELETE http://localhost:3000/api/v1/products/cmpwnzjd70000bculzf7f0rxv
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ
+
+###
+
+### Produk yg sudah dihapus tidak muncul di GET all
+GET http://localhost:3000/api/v1/products
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDA1ODYxLCJleHAiOjE3ODEwMTA2NjF9.xm5wUdvD-P406q1RqO26ZKK3vNGaRVC_LwG0qfMXaPQ
+
+### Filter: search by nama
+GET http://localhost:3000/api/v1/products?search=asus
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+###
+
+### Filter: by category
+GET http://localhost:3000/api/v1/products?category=cmpv1cry40001lsul30y8p3zn
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+###
+
+### Filter: produk low stock
+GET http://localhost:3000/api/v1/products?lowStock=true
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+###
+
+### Filter: kombinasi search + category
+GET http://localhost:3000/api/v1/products?search=asus&category=cmpv1cry40001lsul30y8p3zn
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+###
+
+### Stock IN — tambah stok (restock)
+PATCH http://localhost:3000/api/v1/products/cmpxr28h0000070ul38euydn7/stock
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+{
+  "quantity": -20,
+  "type": "OUT",
+  "reason": "Restock bulanan dari supplier"
+}
+
+###
+
+### Stock ADJUSTMENT — koreksi stok manual
+PATCH http://localhost:3000/api/v1/products/cmpxr28h0000070ul38euydn7/stock
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+{
+  "quantity": -2,
+  "type": "ADJUSTMENT",
+  "reason": "2 unit rusak saat stok opname"
+}
+
+###
+
+### Stock OUT — error kalau stok tidak cukup
+PATCH http://localhost:3000/api/v1/products/cmpxr28h0000070ul38euydn7/stock
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNDcxOTczLCJleHAiOjE3ODEwNzY3NzN9.APDC6EVFKUKh4GF1JZ_GXoFg1nzkrRqVbIloJ9bLB54
+
+{
+  "quantity": -9999,
+  "type": "OUT",
+  "reason": "Test stok tidak cukup"
+}

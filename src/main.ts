@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -21,18 +21,6 @@ async function bootstrap() {
   // ── 3. Global Exception Filter ────────────────────────────────────────────
   // Must be registered before the validation pipe so it can catch pipe errors
   app.useGlobalFilters(new GlobalExceptionFilter());
-
-  // ── 4. Global Validation Pipe ─────────────────────────────────────────────
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Strip properties not in the DTO
-      forbidNonWhitelisted: true, // Throw error if extra properties are sent
-      transform: true, // Auto-transform payloads to DTO class instances
-      transformOptions: {
-        enableImplicitConversion: true, // Convert query param strings to numbers, etc.
-      },
-    }),
-  );
 
   // ── 5. CORS ────────────────────────────────────────────────────────────────
   const allowedOrigins = config.get<string>('ALLOWED_ORIGINS');

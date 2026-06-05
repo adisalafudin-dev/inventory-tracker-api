@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   ArgumentsHost,
   Catch,
@@ -7,6 +8,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { ZodValidationException } from 'nestjs-zod';
+import { ZodIssue } from 'zod';
 
 interface ErrorResponse {
   statusCode: number;
@@ -30,7 +33,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let message: string | string[] = 'An unexpected internal error occurred';
     let error = 'Internal Server Error';
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof ZodValidationException) {
+      statusCode = HttpStatus.BAD_REQUEST;
+      error = 'Bad Request';
+
+      // Flatten all Zod field errors into a readable string array
+      // e.g. ["email: Please provide a valid email", "password: min 8 chars"]
+      statusCode = HttpStatus.BAD_REQUEST;
+      error = 'Bad Request';
+      const zodError: any = exception.getZodError();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      message = zodError.issues.map(
+        (e: ZodIssue) => `${e.path.join('.')}: ${e.message}`,
+      );
+    } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
@@ -62,7 +78,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     };
 
     // Log 5xx errors as errors, 4xx as warnings
-    if (statusCode >= 500) {
+    if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(JSON.stringify(errorResponse));
     } else {
       this.logger.warn(JSON.stringify(errorResponse));

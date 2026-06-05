@@ -1,0 +1,62 @@
+### Buat platform dulu
+POST http://localhost:3000/api/v1/platforms
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNTQwOTg3LCJleHAiOjE3ODExNDU3ODd9.Xwp1t5BiXQteazglqi2T1vrTFsqtMq8sccdmlO3Vx14
+
+{ "name": "Shopee", "logoUrl": "https://avatars.githubusercontent.com/u/10230001?s=280&v=4" }
+
+###
+
+### Buat order baru (stok produk akan otomatis berkurang)
+POST http://localhost:3000/api/v1/orders
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNTQwOTg3LCJleHAiOjE3ODExNDU3ODd9.Xwp1t5BiXQteazglqi2T1vrTFsqtMq8sccdmlO3Vx14
+
+{
+  "orderNumber": "TKP-20260529-001",
+  "platformId":  "cmq0lzftm0001r0ulv5ru3d1l",
+  "buyerName":   "Budi Santoso",
+  "buyerNote":   "Tolong dibubbleWrap",
+  "shippingFee": 15000,
+  "discount":    0,
+  "items": [
+    { "productId": "cmpz2q1pw0001k8ulxzjer7ne", "quantity": 2 }
+  ]
+}
+
+###
+
+### List order + filter by status
+GET http://localhost:3000/api/v1/orders?status=PENDING
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+###
+
+### Update status: PENDING → PROCESSING
+PATCH http://localhost:3000/api/v1/orders/cmq0lzn4v0002r0ulgsajbjr9/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+{ "status": "PROCESSING" }
+
+###
+
+### Update status: PROCESSING → SHIPPED (wajib ada kurir & resi)
+PATCH http://localhost:3000/api/v1/orders/cmq0lzn4v0002r0ulgsajbjr9/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+{
+  "status":          "SHIPPED",
+  "shippingCourier": "J&T Express",
+  "trackingNumber":  "JT1234567890"
+}
+
+###
+
+### Test error: lompat status tidak valid (PENDING → COMPLETED)
+PATCH http://localhost:3000/api/v1/orders/cmq0lzn4v0002r0ulgsajbjr9/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXB2MWNiYnMwMDAwbHN1bDRxcGdtdTFqIiwiZW1haWwiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgwNjQ0Nzg2LCJleHAiOjE3ODEyNDk1ODZ9.5M26RMxY_f8o2UiVf2AhH_SkbI5ZFp8glyDHMSPSHJg
+
+{ "status": "COMPLETED" }

@@ -1,26 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+// src/auth/dto/register.dto.ts
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class RegisterDto {
-  @ApiProperty({ example: 'John Doe' })
-  @IsOptional()
-  @IsString()
-  name!: string;
+export const RegisterSchema = z.object({
+  name: z
+    .string({ error: 'Nama wajib diisi' })
+    .min(2, 'Nama minimal 2 karakter')
+    .max(100),
 
-  @ApiProperty({ example: 'john@example.com' })
-  @IsEmail({}, { message: 'Please provide a valid email address' })
-  @IsNotEmpty()
-  email!: string;
+  email: z.email('Format email tidak valid'),
 
-  @ApiProperty({ example: 'StrongPassword123!' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  password!: string;
-}
+  password: z
+    .string({ error: 'Password wajib diisi' })
+    .min(8, 'Password minimal 8 karakter')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password harus mengandung huruf besar, huruf kecil, dan angka',
+    ),
+});
+
+export class RegisterDto extends createZodDto(RegisterSchema) {}
