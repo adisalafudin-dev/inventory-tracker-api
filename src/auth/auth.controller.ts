@@ -2,38 +2,69 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
-  UsePipes,
+  Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ZodValidationPipe } from 'nestjs-zod'; // 👈
+import { Throttle } from '@nestjs/throttler';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { UsePipes } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Public } from './decorators/public.decorator';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GetUser } from './decorators/get-user.decorator';
+import { UseGuards } from '@nestjs/common';
+import { Role, type User } from 'generated/prisma/client';
+import { Roles } from './decorators/roles.decorator';
 
-@ApiTags('Authentication')
+@ApiTags('Auth')
+@UsePipes(ZodValidationPipe)
 @Controller('auth')
-@UsePipes(ZodValidationPipe) // 👈 applies Zod validation to all routes here
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User registered, returns JWT' })
-  @ApiResponse({ status: 409, description: 'Email already in use' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  register(@Body() dto: RegisterDto) {
+  // 👇 Pakai throttle "auth": max 5x per 60 detik
+  @Throttle({ auth: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Daftar akun baru' })
+  @Roles(Role.ADMIN)
+  @ApiResponse({ status: 429, description: 'Terlalu banyak percobaan' })
+  register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.setHeader('X-Custom-Message', 'Akun berhasil dibuat!');
     return this.authService.register(dto);
   }
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with email and password' })
-  @ApiResponse({ status: 200, description: 'Login successful, returns JWT' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  login(@Body() dto: LoginDto) {
+  // 👇 Login paling ketat — max 5x per 60 detik
+  @Throttle({ auth: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Login dengan email dan password' })
+  @ApiResponse({ status: 429, description: 'Terlalu banyak percobaan' })
+  login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    res.setHeader('X-Custom-Message', 'Login berhasil');
     return this.authService.login(dto);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Profil saya' })
+  getMe(@GetUser() user: User) {
+    return user;
   }
 }

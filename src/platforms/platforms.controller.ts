@@ -14,6 +14,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PlatformsService } from './platforms.service';
 import { CreatePlatformDto } from './dto/create-platform.dto';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @ApiTags('Platforms')
 @ApiBearerAuth()
@@ -29,12 +30,14 @@ export class PlatformsController {
     return this.platformsService.findAll();
   }
 
+  @Roles('ADMIN') // Hanya admin yang bisa tambah platform baru
   @Post()
   @ApiOperation({ summary: 'Tambah platform baru (Tokopedia, Shopee, dst)' })
   create(@Body() dto: CreatePlatformDto) {
     return this.platformsService.create(dto);
   }
 
+  @Roles('ADMIN') // Hanya admin yang bisa aktifkan/nonaktifkan platform
   @Patch(':id/toggle')
   @ApiOperation({ summary: 'Aktifkan / nonaktifkan platform' })
   toggle(@Param('id') id: string) {

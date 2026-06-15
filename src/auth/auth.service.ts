@@ -41,6 +41,7 @@ export class AuthService {
         name: dto.name || '',
         email: dto.email,
         passwordHash: hashedPassword,
+        role: dto.role, // ✅ pakai role dari DTO
       },
     });
 

@@ -10,6 +10,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CategoriesService } from 'src/categories/categories.service';
 import { QueryProductDto } from './dto/query-product.dto';
 import { StockAdjustmentDto } from './dto/stock-adjustment.dto';
+import { Prisma } from 'generated/prisma/browser';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import {
+  getPaginationParams,
+  paginate,
+} from 'src/common/pagination/paginate.helper';
 
 @Injectable()
 export class ProductsService {
@@ -73,36 +79,55 @@ export class ProductsService {
     });
   }
 
-  async findAll(query: QueryProductDto) {
-    const { search, category, lowStock, isActive } = query;
+  async findAll(query: QueryProductDto & PaginationDto) {
+    const { search, category, lowStock, isActive, page, limit } = query;
 
-    return this.prisma.product.findMany({
-      where: {
-        // Filter 1: isActive (default true)
-        isActive,
-
-        ...(category && { categoryId: category }),
-        ...(lowStock && {
-          stock: {
-            lte: this.prisma.product.fields.lowStockAt,
+    const where: Prisma.ProductWhereInput = {
+      isActive,
+      ...(category && { categoryId: category }),
+      ...(search && {
+        OR: [
+          {
+            name: { contains: search, mode: 'insensitive' },
           },
-        }),
-        ...(search && {
-          OR: [
-            {
-              name: { contains: search, mode: 'insensitive' },
-            },
-            {
-              sku: { contains: search, mode: 'insensitive' },
-            },
-          ],
-        }),
-      },
-      include: {
-        category: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+          {
+            sku: { contains: search, mode: 'insensitive' },
+          },
+        ],
+      }),
+    };
+
+    if (lowStock) {
+      const lowStockRows = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id
+        FROM   products
+        WHERE  stock <= "lowStockAt"
+        AND    "isActive" = ${isActive}
+      `;
+
+      const lowStockIds = lowStockRows.map((row) => row.id);
+
+      if (lowStockIds.length === 0) return [];
+
+      where.id = { in: lowStockIds };
+    }
+
+    const { skip, take } = getPaginationParams(page, limit);
+
+    const [data, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where: where,
+        include: {
+          category: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.product.count({ where: where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   findOne(id: string) {

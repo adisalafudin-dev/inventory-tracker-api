@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/http-exception.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +22,8 @@ async function bootstrap() {
   // ── 3. Global Exception Filter ────────────────────────────────────────────
   // Must be registered before the validation pipe so it can catch pipe errors
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // ── 5. CORS ────────────────────────────────────────────────────────────────
   const allowedOrigins = config.get<string>('ALLOWED_ORIGINS');

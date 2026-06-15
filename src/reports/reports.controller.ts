@@ -9,6 +9,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReportsService } from './reports.service';
+import { Role } from 'generated/prisma/client';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -30,6 +32,7 @@ export class ReportsController {
     return this.reportsService.getLowStockProducts();
   }
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa buat order baru
   @Post('monthly/generate')
   @ApiOperation({ summary: 'Generate atau refresh laporan bulanan' })
   @ApiQuery({ name: 'year', required: true, example: 2026 })

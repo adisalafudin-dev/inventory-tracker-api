@@ -10,6 +10,12 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { OrderStatus } from 'generated/prisma/enums';
 import { UpdateOrderDto } from './dto/update-order-status.dto';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { Prisma } from 'generated/prisma/client';
+import {
+  getPaginationParams,
+  paginate,
+} from 'src/common/pagination/paginate.helper';
 
 const STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ['PROCESSING', 'CANCELLED'],
@@ -180,28 +186,42 @@ export class OrdersService {
     return order;
   }
 
-  async findAll(query: QueryOrderDto) {
-    const { status, platformId, search } = query;
+  async findAll(query: QueryOrderDto & PaginationDto) {
+    const { status, platformId, search, page, limit } = query;
 
-    return this.prisma.order.findMany({
-      where: {
-        ...(status && { status }),
-        ...(platformId && { platformId }),
-        ...(search && {
-          OR: [
-            { orderNumber: { contains: search, mode: 'insensitive' } },
-            { buyerName: { contains: search, mode: 'insensitive' } },
-          ],
-        }),
-      },
-      include: {
-        platform: { select: { id: true, name: true } },
-        items: {
-          include: { product: { select: { id: true, name: true, sku: true } } },
+    const where: Prisma.OrderWhereInput = {
+      ...(status && { status }),
+      ...(platformId && { platformId }),
+      ...(search && {
+        OR: [
+          { orderNumber: { contains: search, mode: 'insensitive' } },
+          { buyerName: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const { skip, take } = getPaginationParams(page, limit);
+
+    const [data, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          platform: { select: { id: true, name: true } },
+          items: {
+            include: {
+              product: { select: { id: true, name: true, sku: true } },
+            },
+          },
         },
-      },
-      orderBy: { orderedAt: 'desc' },
-    });
+        skip,
+        take,
+        orderBy: { orderedAt: 'desc' },
+      }),
+
+      this.prisma.order.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async updateStatus(id: string, dto: UpdateOrderDto) {
@@ -216,27 +236,55 @@ export class OrdersService {
       );
     }
 
+    const shouldRestoreStock =
+      dto.status === 'CANCELLED' || dto.status === 'RETURNED';
+
     // Set timestamp otomatis berdasarkan status baru
     const timestampData: Record<string, Date | null> = {};
     if (dto.status === 'SHIPPED') timestampData.shippedAt = new Date();
     if (dto.status === 'COMPLETED') timestampData.completedAt = new Date();
 
-    return this.prisma.order.update({
-      where: { id },
-      data: {
-        status: dto.status,
-        shippingCourier: dto.shippingCourier ?? order.shippingCourier,
-        trackingNumber: dto.trackingNumber ?? order.trackingNumber,
-        ...timestampData,
-      },
-      include: {
-        platform: { select: { id: true, name: true } },
-        items: {
-          include: {
-            product: { select: { id: true, name: true, sku: true } },
+    return this.prisma.$transaction(async (tx) => {
+      const updatedOrder = await this.prisma.order.update({
+        where: { id },
+        data: {
+          status: dto.status,
+          shippingCourier: dto.shippingCourier ?? order.shippingCourier,
+          trackingNumber: dto.trackingNumber ?? order.trackingNumber,
+          ...timestampData,
+        },
+        include: {
+          platform: { select: { id: true, name: true } },
+          items: {
+            include: {
+              product: { select: { id: true, name: true, sku: true } },
+            },
           },
         },
-      },
+      });
+
+      if (shouldRestoreStock) {
+        for (const item of order.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              quantity: item.quantity, // positif = stok masuk kembali
+              type: dto.status === 'RETURNED' ? 'RETURN' : 'ADJUSTMENT',
+              reason:
+                dto.status === 'RETURNED'
+                  ? `Retur dari Order #${order.orderNumber}`
+                  : `Pembatalan Order #${order.orderNumber}`,
+            },
+          });
+        }
+      }
+
+      return updatedOrder;
     });
   }
 }

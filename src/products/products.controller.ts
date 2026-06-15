@@ -29,6 +29,9 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { StockAdjustmentDto } from './dto/stock-adjustment.dto';
+import { Role } from 'generated/prisma/client';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -38,20 +41,15 @@ import { StockAdjustmentDto } from './dto/stock-adjustment.dto';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  // src/products/products.controller.ts — update endpoint findAll
   @Get()
-  @ApiOperation({ summary: 'Ambil semua produk dengan filter' })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Cari by nama atau SKU',
-  })
-  @ApiQuery({
-    name: 'category',
-    required: false,
-    description: 'Filter by category ID',
-  })
+  @ApiOperation({ summary: 'List produk dengan filter dan pagination' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'category', required: false })
   @ApiQuery({ name: 'lowStock', required: false, enum: ['true', 'false'] })
-  findAll(@Query() query: QueryProductDto) {
+  findAll(@Query() query: QueryProductDto & PaginationDto) {
     return this.productsService.findAll(query);
   }
 
@@ -61,18 +59,21 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa buat order baru
   @Post()
   @ApiOperation({ summary: 'Buat produk baru' })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa buat order baru
   @Patch(':id')
   @ApiOperation({ summary: 'Update sebagian field produk' })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa buat order baru
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Nonaktifkan produk (soft delete)' })

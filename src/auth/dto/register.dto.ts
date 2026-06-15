@@ -17,6 +17,8 @@ export const RegisterSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password harus mengandung huruf besar, huruf kecil, dan angka',
     ),
+
+  role: z.enum(['ADMIN', 'VIEWER']).default('VIEWER'),
 });
 
 export class RegisterDto extends createZodDto(RegisterSchema) {}

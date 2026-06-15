@@ -11,11 +11,14 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'generated/prisma/browser';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa buat kategori baru
   @Post()
   @ApiOperation({ summary: 'Buat kategori baru' })
   @ApiResponse({ status: 201, description: 'Kategori berhasil dibuat' })
@@ -32,6 +35,7 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa update kategori
   @Patch(':id')
   @ApiOperation({ summary: 'Ubah data kategori' })
   @ApiResponse({ status: 201, description: 'Kategori berhasil update' })
@@ -44,6 +48,7 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
+  @Roles(Role.ADMIN) // Hanya admin yang bisa hapus kategori
   @Delete(':id')
   @ApiOperation({ summary: 'Hapus data kategori' })
   @ApiResponse({ status: 201, description: 'Kategori berhasil di hapus' })
